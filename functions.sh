@@ -116,6 +116,30 @@ start_httpd() {
     httpd_url="http://$(${scriptdir}/find-ip):${httpd_port}/"
 }
 
+start_proxy() {
+    local proxy_root=$1
+
+    # Starts a proxy server rooted in $proxy_root. The PID of the server will be
+    # written to $tmpdir/proxy-pid, and the URL for the server will be set in
+    # $proxy_url
+
+    local scriptdir=${PWD}/scripts
+    local proxy_info="$(${scriptdir}/launch_tinyproxy.sh "${proxy_root}")"
+
+    # Parse out the port and load PID
+    local proxy_port="$(echo "$proxy_info" | cut -d ' ' -f 2)"
+
+    # Construct a URL
+    proxy_url="http://$(${scriptdir}/find-ip):${proxy_port}/"
+}
+
+stop_proxy() {
+    local proxy_root=$1
+
+    # Stops a proxy server rooted in $proxy_root.
+    kill -15 $(cat $proxy_root/tinyproxy/tinyproxy.pid)
+}
+
 udev_escape() {
     local string="$1"
     local scriptdir=${PWD}/scripts
