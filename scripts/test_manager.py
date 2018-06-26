@@ -76,10 +76,12 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.parse()
 
+    run_known_failure_tests = False
     collector = TestCollector()
     tests = []
     if parser.tests:
         tests = collector.find_by_paths(parser.tests)
+        run_known_failure_tests = True
     elif parser.test_group:
         tests = collector.find_by_group(parser.root_directory, parser.test_group)
     else:
@@ -90,12 +92,16 @@ if __name__ == "__main__":
         exit(1)
 
     configurator = TestConfigurator(parser.root_directory)
-    configurator.load()
-    configurator.prepare_tests(tests)
+    configurator.load_configuration()
+
+    if parser.tests:
+        configurator.process_known_failure = True
+
+    configurator.run(tests)
 
     for t in tests:
-        if not configurator.check_test(t):
-            print("Test {} is not properly set-up, skipping...".format(t.name))
+        if not t.valid:
+            print(t.error_message)
             continue
         else:
             print("Writing {} as {}".format(t.name, t.target_path))
