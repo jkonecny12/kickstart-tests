@@ -20,6 +20,13 @@
 # Red Hat Author(s): Jiri Konecny <jkonecny@redhat.com>
 
 from pylorax.mount import IsoMountpoint
+from lib.utils import disable_on_dry_run
+from lib.conf.configuration import GlobalConfiguration
+
+
+class IsoDeviceException(Exception):
+    """Exception specific to IsoDev class usage."""
+    pass
 
 
 class IsoDev(object):
@@ -39,14 +46,28 @@ class IsoDev(object):
 
     @property
     def stage2(self):
+        if not self._iso_mount:
+            if GlobalConfiguration.dry_run:
+                return "dry-run-mode"
+            else:
+                raise IsoDeviceException("To read stage2 name you have to mount the ISO.")
+
         return self._iso_mount.stage2
 
     @property
     def label(self):
+        if not self._iso_mount:
+            if GlobalConfiguration.dry_run:
+                return "dry-run-mode"
+            else:
+                raise IsoDeviceException("To read label you have to mount the ISO.")
+
         return self._iso_mount.label
 
+    @disable_on_dry_run
     def mount(self):
         self._iso_mount = IsoMountpoint(self.iso_path, self._dest_location)
 
+    @disable_on_dry_run
     def unmount(self):
         self._iso_mount.umount()
