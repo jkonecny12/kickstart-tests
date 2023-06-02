@@ -19,7 +19,7 @@
 
 # Ignore unused variable parsed out by tooling scripts as test tags metadata
 # shellcheck disable=SC2034
-TESTTYPE="network gh910"
+TESTTYPE="network"
 
 . ${KSTESTDIR}/functions.sh
 
@@ -31,4 +31,42 @@ stage2_from_ks() {
 # The test needs more RAM because installer image is downloaded from network
 get_required_ram() {
     echo "2572"
+}
+
+replace_ks_basearch() {
+    ks=$1
+
+    # inst.stage2 command can't cope with $basearch variable in KSTEST_URL
+    sed -i -e 's#\(^url.*\)\$basearch#\1x86_64#' ${ks}
+
+    echo $ks
+}
+
+replace_ks_url() {
+    ks=$1
+    http_ip=$2
+
+    #replace @HTTP_LOCAL_SERVER@ with local server serving stage2 image and empty repositories
+    sed -i -e "s#\(^url.*\)\@HTTP_LOCAL_SERVER@#\1$2#" ${ks}
+
+    echo $ks
+}
+
+prepare() {
+    ks=$1
+    tmpdir=$2
+
+    # Copy the stage2 to a directory in tmpdir
+    mkdir -p ${tmpdir}/http/images
+
+    isoinfo -i ${tmpdir}/$(basename ${IMAGE}) -x "/IMAGES/INSTALL.IMG;1" > ${tmpdir}/http/images/install.img
+    createrepo_c -q ${tmpdir}/http
+
+    # Start a http server to serve the included file
+    start_httpd ${tmpdir}/http $tmpdir
+
+    ks=$(replace_ks_basearch $ks)
+    ks=$(replace_ks_url $ks $httpd_url)
+
+    echo "${ks}"
 }

@@ -4,9 +4,11 @@
 # and activation of network in initramfs from kickstart configuration.
 # rhbz#2153361
 
-%ksappend repos/default.ks
 %ksappend common/common_no_payload.ks
 %ksappend payload/default_packages.ks
+
+url --url @HTTP_LOCAL_SERVER@
+repo --baseurl @KSTEST_URL@ --name main_repo
 
 %post
 %ksappend validation/success_if_result_empty.ks
