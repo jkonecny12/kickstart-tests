@@ -1,4 +1,4 @@
-Kickstart Test Documentation
+aaaKickstart Test Documentation
 ****************************
 
 Kickstart tests are one way of testing the Anaconda Installer, by running an automated installation based on a kickstart file and checking the results.
