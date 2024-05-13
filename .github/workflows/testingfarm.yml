@@ -2,8 +2,9 @@
 name: Testing farm tests
 
 on:
-  pull_request_target:
-    types: [opened, synchronize, reopened]
+  issue_comment:
+    types:
+      - created
 
 jobs:
   testingfarm:
